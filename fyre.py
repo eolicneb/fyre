@@ -14,11 +14,13 @@ import pyqtgraph as pg
 class GenImage():
     def __init__(self, size=100):
 
-        self.boost = 8
-        self.period = .015
-        self.batch = 2
-        self.void = 2
-        self.clip = (.1, 1.)
+        self.boost = 10
+        self.period = .005
+        self.batch = 1
+        self.void = 20
+        self.offset = -15
+        self.h_frame = slice(self.void+self.offset, -self.void+self.offset, 1)
+        self.clip = (.15, 1.)
         self.size = size+2*self.void
 
         self.kiln = np.zeros((self.size, self.size+self.void))
@@ -36,10 +38,18 @@ class GenImage():
         while time.time() < self.lastupdate + self.period:
             pass
         self.lastupdate = time.time()
-        return self.kiln[self.void:-self.void,self.void:-self.void].clip(*self.clip)
+        return (self.kiln[self.void:-self.void,self.h_frame]*.6).clip(*self.clip)
     
     def _coal(self):
-        return np.random.random(self.b-self.a)**4.2*self.boost + .6*self.kiln[self.a:self.b,0]
+        coal, log_len, n = np.ones(self.b-self.a), self.b-self.a, 1
+        while log_len >= 1:
+            degrees = np.random.random(n)/2
+            for log, deg in zip(coal[::log_len], degrees):
+                coal[::log_len] *= deg
+            n *= 2
+            log_len //= 2
+        coal += np.random.random(self.b-self.a)
+        return coal**4.2*self.boost + .5*self.kiln[self.a:self.b,0]
 
 
 
