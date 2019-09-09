@@ -16,20 +16,20 @@ class GenImage():
 
         self.period = .02
 
-        self.heat_cons = .94
-        self.base_heat = 1
-        self.fire_rnd = .2
-        self.coal_smooth = .5
-        self.coal_batch = 4
+        self.heat_cons = .37
+        self.base_heat = 1.2
+        self.fire_rnd = .43
+        self.coal_smooth = .77
+        self.coal_batch = 1
 
         self.diffusion = .3
-        self.convection = .9
-        self.convection_batch = 2
-        self.batch = 5
+        self.convection = .8
+        self.convection_batch = 6
+        self.batch = 8
 
-        self.clip_min = .718
-        self.power = 1.
-        self.shift = 0.
+        self.clip_min = .654
+        self.power = 1.76
+        self.shift = 0.04
         
         self.clip_max = 1.
 
@@ -246,6 +246,8 @@ class App(QtGui.QMainWindow):
 
         self.size = 140
 
+        self.setGeometry(100, 100, 1000, 300)
+
         #### Create Gui Elements ###########
         self.mainbox = QtGui.QWidget()
         self.setCentralWidget(self.mainbox)
@@ -263,10 +265,11 @@ class App(QtGui.QMainWindow):
 
         #  Controls box
         self.controls_box = QtGui.QWidget(self.mainbox)
+        self.controls_box.setMinimumWidth(400)
         self.mainbox.layout().addWidget(self.controls_box, 0, 2, 2, 1)
-        self.controls_box.setLayout(QtGui.QVBoxLayout())
+        self.controls_box.setLayout(QtGui.QGridLayout())
         self.controls_label = QtGui.QLabel()
-        self.controls_box.layout().addWidget(self.controls_label)
+        self.controls_box.layout().addWidget(self.controls_label, 0, 0)
         self.controls_label.setText('CONTROLS BOX')
 
         #  display canvas
@@ -299,12 +302,12 @@ class App(QtGui.QMainWindow):
         sld_heat_cons = SliderBox( object=self.data_provider,
                                   attr='heat_cons',
                                   min=.001)
-        self.controls_box.layout().addWidget(sld_heat_cons)
+        self.controls_box.layout().addWidget(sld_heat_cons, 1, 0)
         #  . base heat
         sld_base_heat = SliderBox( object=self.data_provider,
                                   attr='base_heat',
                                   min=.01, max=3.01)
-        self.controls_box.layout().addWidget(sld_base_heat)
+        self.controls_box.layout().addWidget(sld_base_heat, 1, 1)
         #  . fire ramdomness
         sld_fire_rnd = SliderBox( object=self.data_provider,
                                   attr='fire_rnd',
