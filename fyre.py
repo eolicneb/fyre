@@ -16,9 +16,10 @@ class GenImage():
 
         self.boost = 1.
         self.period = .005
-        self.batch = 7
-        self.void = 3
-        self.offset = -1
+        self.batch = 5
+        self.coal_batch = 40
+        self.void = 10
+        self.offset = -2
         self.clip = (.6, 1.)
 
         self.size = size+2*self.void
@@ -28,37 +29,51 @@ class GenImage():
         self.a, self.b = 1, self.size-1
         self.kiln[self.a:self.b,0] = np.random.random(self.b-self.a)*self.boost
         self.lastupdate = time.time()
+
+        self.coal_count = 0
+        # self.kiln[self.a:self.b,0] = 10
+        self.coal = self.kiln[self.a:self.b,0]
         
 
     def __call__(self):
-        self.kiln[self.a:self.b,0] = self._coal()
         for _ in range(self.batch):
+            self.kiln[self.a:self.b,0] = self._coal()
             for h in np.arange(self.size-1, 0, -1):
-                self.kiln[1:-1,h] = .6*self.kiln[1:-1,h] + .25*(self.kiln[:-2,h]+self.kiln[2:,h])
-                self.kiln[:,h] *= .085
-                self.kiln[1:-1,h] += .8 * self.kiln[1:-1,h-1] + .05*(self.kiln[:-2,h-1]+self.kiln[2:,h-1])
+                self.kiln[1:-1,h] = .6*self.kiln[1:-1,h] \
+                                + .25*(self.kiln[:-2,h]+self.kiln[2:,h])
+                self.kiln[:,h] *= .073
+                self.kiln[1:-1,h] += .851 * self.kiln[1:-1,h-1] \
+                                + .03*(self.kiln[:-2,h-1]+self.kiln[2:,h-1])
         
         while time.time() < self.lastupdate + self.period:
             pass
         self.lastupdate = time.time()
 
-        return (self.kiln[self.void:-self.void,self.h_frame].clip(0,1)**.5*self.boost).clip(*self.clip)
+        data = self.kiln[self.void:-self.void,self.h_frame]**1.1
+        data *= self.boost
+        # data = data
+        return np.stack((data**.5,data**.7,data**2), axis=2).clip(*self.clip)
     
     def _coal(self):
-        coal, log_len, n = np.zeros(self.b-self.a)+.5, self.b-self.a, 1
-        while log_len >= 1:
-            degrees = np.random.randn(n+1)
-            log_slices = [slice(i*log_len,(i+1)*log_len) for i in range(n)]
-            for log, deg in zip(log_slices, degrees[:-1]):
-                coal[log] += deg
-            coal[n*log_len:] += degrees[-1]
-            n *= 2
-            log_len //= 2
-        coal += .4
-        coal = coal.clip(.2,5.)
-        coal += np.random.randn(self.b-self.a)/10
+        
+        # temperature profile changes only every coal_batch iters
+        if self.coal_count == self.coal_batch:
+            log_len, n = self.b-self.a, 1
+            while log_len >= 1:
+                degrees = np.random.random(n+1)
+                log_slices = [slice(i*log_len,(i+1)*log_len) for i in range(n)]
+                for log, deg in zip(log_slices, degrees[:-1]):
+                    self.coal[log] *= deg
+                self.coal[n*log_len:] *= degrees[-1]
+                n *= 2
+                log_len //= 2
+            self.coal_count = 0
+        else:
+            self.coal_count += 1
+            
         # coal += np.random.random(self.b-self.a)
-        return coal*.2 + .8*self.kiln[self.a:self.b,0]
+        # return coal*.4 + .6*self.kiln[self.a:self.b,0]
+        return self.coal + np.random.randn(self.b-self.a).clip(0)
 
 
 
@@ -66,7 +81,7 @@ class App(QtGui.QMainWindow):
     def __init__(self, parent=None):
         super(App, self).__init__(parent)
 
-        self.size = 200
+        self.size = 160
 
         #### Create Gui Elements ###########
         self.mainbox = QtGui.QWidget()

@@ -16,20 +16,20 @@ class GenImage():
 
         self.period = .02
 
-        self.heat_cons = .37
-        self.base_heat = 1.2
-        self.fire_rnd = .43
-        self.coal_smooth = .77
-        self.coal_batch = 1
+        self.heat_cons = .24
+        self.base_heat = 1.8
+        self.fire_rnd = .0
+        self.coal_smooth = .84
+        self.coal_batch = 5
 
-        self.diffusion = .3
-        self.convection = .8
-        self.convection_batch = 6
+        self.diffusion = .17
+        self.convection = .987
+        self.convection_batch = 3
         self.batch = 8
 
-        self.clip_min = .654
-        self.power = 1.76
-        self.shift = 0.04
+        self.clip_min = .862
+        self.power = 1.648
+        self.shift = 0.308
         
         self.clip_max = 1.
 
@@ -87,7 +87,7 @@ class GenImage():
         # temperature profile changes only every coal_batch iters
         if self.coal_count == self.coal_batch:
             log_len, n = self.b-self.a, 1
-            while log_len >= 1:
+            while log_len > 1:
                 
                 degrees = np.random.randn(n+1)
                 log_slices = [slice(i*log_len,(i+1)*log_len) for i in range(n)]
@@ -354,14 +354,14 @@ class App(QtGui.QMainWindow):
         #  . power
         sld_power = SliderBox( object=self.data_provider,
                                   attr='power',
-                                  min=0.5,
-                                  max=3.0)
+                                  min=0.2,
+                                  max=5.0)
         self.controls_box.layout().addWidget(sld_power)
         #  . shift
         sld_shift = SliderBox( object=self.data_provider,
                                   attr='shift',
                                   min=-0.2,
-                                  max=0.2)
+                                  max=0.6)
         self.controls_box.layout().addWidget(sld_shift)
 
         # Reset
